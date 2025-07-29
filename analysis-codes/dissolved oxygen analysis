@@ -1,0 +1,41 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def plot_od_from_csv(csv_filename):
+    # Read CSV
+    df = pd.read_csv(csv_filename, header=None, names=['Datetime', 'DO'])
+
+    # Parse columns
+    df['Datetime'] = pd.to_datetime(df['Datetime'], errors='coerce')
+    df['DO'] = pd.to_numeric(df['DO'], errors='coerce')
+    df.dropna(subset=['Datetime', 'DO'], inplace=True)
+
+    # Extract unique dates
+    df['DateOnly'] = df['Datetime'].dt.date
+    unique_dates = sorted(df['DateOnly'].unique())
+    day_labels = {date: f'Day {i+1}' for i, date in enumerate(unique_dates)}
+
+    # Get tick locations for labeling
+    tick_locs = [df[df['DateOnly'] == date]['Datetime'].iloc[0] for date in unique_dates]
+    tick_labels = [day_labels[date] for date in unique_dates]
+
+    # Plotting
+    plt.figure(figsize=(10, 6))
+    plt.plot(df['Datetime'], df['DO'], marker='o', linestyle='-', 
+             color='b', markersize=2, linewidth=0.8)
+
+    plt.title('Dissolved Oxygen vs Time')
+    plt.xlabel('Time')
+    plt.ylabel('Dissolved Oxygen (DO) [mg/L]')
+    plt.ylim(0, 10)
+    plt.grid(True)
+
+    # Apply Day N x-axis labels
+    plt.xticks(tick_locs, tick_labels, rotation=45)
+
+    plt.tight_layout()
+    plt.show()
+
+if __name__ == "__main__":
+    csv_filename = 'do_log_2025-04-25_12-46-01.csv'
+    plot_od_from_csv(csv_filename)
